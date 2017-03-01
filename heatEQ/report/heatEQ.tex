@@ -1,0 +1,53 @@
+\documentclass[11pt]{report}
+\usepackage[utf8]{inputenc}
+
+
+\usepackage{amsmath}
+
+
+
+\begin{document}
+
+\chapter*{Heat equation}
+
+The heat equation is in carthesian coordinates is derived from Fourier's law of heat conduction and 
+is written as
+\begin{equation}
+\frac{\partial}{\partial\mathbf{x}}\left(k\frac{\partial T}{\partial \mathbf{x}} \right) + \dot{e}_{gen} = \rho c\frac{\partial T}{\partial t}
+\end{equation}
+
+where $T$ is the variable temperature, $\dot{e}_{gen}$ is the constant rate of heat generated per unit volume,
+ $k$ is the material thermal conductivity, $\rho$ is the matrial density and $c$ is the specific heat.
+For a constant material conductivity a parameter $\alpha = \frac{k}{\rho c}$ is usualy introduced and it describes
+the thermal diffusivity.
+
+
+\section*{Boundary conditions}
+
+For the heat equation there are many possible boundary conditions
+that may be applied. Which ones and how many needed are problem dependent.
+
+
+
+
+
+\section*{Deriving exact solutions}
+
+For simple geometries and assumptions, exact solutions can be derived.
+
+
+
+\section*{A finite difference approach}
+
+A second order scheme for the one dimensional heat equation with constant
+can be written as
+
+\begin{equation}
+\frac{T_{i+1}^n-2T_i^n+T_{i-1}^n}{\Delta t^2} = \frac{1}{\alpha}\frac{T_i^{n+1}-T_i^{n-1}}{2\Delta t}
+\end{equation}
+
+
+
+
+
+\end{document}
