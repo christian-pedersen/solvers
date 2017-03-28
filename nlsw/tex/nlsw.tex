@@ -1,0 +1,54 @@
+\documentclass[11pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+
+\begin{document}
+
+\chapter*{The non-linear shallow water equations}
+
+\section*{Mathematical formulation}
+
+The scaled non-linear shallow water equations is a set of partial 
+differential equations 
+\begin{equation}
+\frac{\partial \mathbf{u}}{\partial t} + \mathbf{u}\cdot\nabla\mathbf{u} = -\nabla \eta
+\label{eq:N2}
+\end{equation}
+\begin{equation}
+\frac{\partial \eta}{\partial t} = -\nabla\cdot\left[\mathbf{u}\left(\eta + h\right)\right]
+\label{eq:continuity}
+\end{equation}
+
+\noindent where $\mathbf{u}$ is the wave velocity, $\eta$ is the surface elevation
+and $h$ is the water depth. Eq.\ref{eq:N2} is the equation of motion derived from Newtons
+second law of motion and Eq.\ref{eq:continuity} is the continuity equation.
+
+
+\section*{Finite element formulation}
+
+By implementing the Galerkin method, i.e. multiplying each equation with a test function
+and performing integration by parts (IBP), we can obtain a finite element formulation;
+Find $u_h\in H^1$ and $\eta _h\in L^2$ such that
+\begin{equation}
+a(u_h, v) + b(\eta_h, v) = 0 \qquad \forall v \in H^1
+\end{equation}
+\begin{equation}
+c(u_h, q) + d(\eta_h, q) = 0 \qquad \forall q \in L^2
+\end{equation}
+\noindent where
+\begin{equation}
+\begin{split}
+a(u_h, v) &= \left(\frac{\partial u_h}{\partial t}, v \right)_\Omega + \left(u_h\cdot\nabla u_h, v \right)_\Omega \\
+b(\eta _h, v) &= \left(\eta _h, v\right) \\
+c(u_h, q) &=  \\
+d(\eta_h, q) &=
+\end{split}
+\end{equation}
+
+
+\section*{Temporal discretization}
+
+
+
+\end{document}
