@@ -1,0 +1,78 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+
+\title{Elasticity \\ an introduction}
+\author{Christian Pedersen}
+
+\begin{document}
+
+\maketitle
+
+
+\section*{Linear elastostatics}
+
+Linear elastostatics can be described by the governing equations
+%
+\begin{subequations}
+\begin{equation}
+f_b + \nabla\cdot \sigma  = 0
+\end{equation}
+\begin{equation}
+\sigma = 2\mu\epsilon(u) + \lambda tr(\epsilon(u))\delta 
+\end{equation}
+\begin{equation}
+\epsilon(u) = \frac{1}{2}\left(\nabla u + \nabla u^T \right)
+\end{equation}
+\end{subequations}
+%
+The first equation is Newton's second law of mechanical equilibrium where
+$f_b$ is the body force, i.e. gravity, and $\nabla\cdot\sigma$ is the 
+contact force. The stress tensor $\sigma$ is derived from Hooke's law 
+where we have a linear relation between stress and strain $u$ and
+ $\epsilon(u)$ is Cauchy's strain tensor.
+By combining the equation set $(1)$ we obtain
+%
+\begin{equation}
+f_b + \mu\nabla^2u + (\lambda + \mu)\nabla\nabla\cdot u = 0
+\end{equation}
+%
+which is called the \textit{Navier-Cauchy equilibrium equation}.
+
+\subsection*{Finite element formulation}
+
+u is now expressed as a sum of piecewise linear basis functions
+$u=\sum_j c_j\psi_j$. After we multiply equation $(2)$ with a test function 
+$v$ and perform integration by parts, a FEM formulation is; 
+
+Find $u\in H^1$ such that 
+%
+\begin{equation}
+a(u,v) = L(v) \;, \quad \forall v \in H^1
+\end{equation}
+%
+where
+% 
+\begin{equation}
+\begin{split}
+a(u, v) &= \mu(\nabla u, \nabla v) + (\mu + \lambda)(\nabla \cdot u, \nabla \cdot v)\\
+L(v) &= (f, v)
+\end{split}
+\end{equation}
+%
+
+
+
+\section*{Linear elastodynamics}
+
+Linear elastodynamics can be described as linear elastostatics with an additional inertia term
+\begin{equation}
+f_b + \mu\nabla^2u + (\lambda + \mu)\nabla\nabla\cdot u = \rho\frac{\partial^2 u}{\partial t^2}
+\end{equation}
+
+
+
+\end{document}
+
+
