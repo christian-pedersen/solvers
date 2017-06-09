@@ -1,132 +1,90 @@
-from numpy import linspace, zeros, newaxis
-
-def solver(I, V, f, q, Lx, Ly, Nx, Ny, dt, T, b,
-           user_action = None, dt_safety_factor = 1,
-           boundary_y0 = 'reflecting', boundary_yM = 'reflecting',
-           boundary_x0 = 'reflecting', boundary_xM = 'reflecting'):
-
-    Nt = int(round(T/float(dt)))
-    t = linspace(0, T*dt, Nt+1)      # mesh points in time
-    x = linspace(0, Lx, Nx+1)        # mesh points in x dir
-    y = linspace(0, Ly, Ny+1)        # mesh points in y dir
-
-    dx = x[1] - x[0]
-    dy = y[1] - y[0]
-
-    xv = x[:,newaxis]
-    yv = y[newaxis,:]
-
-    It = range(0, Nt)
-
-    #Check q
-    if q is None or q == 0:
-        print 'q is not a valid function or value'
-        return
-
-    #Pre-calculate the functions for scalar
-    Q = zeros((Nx+3, Ny+3))
-    Q[1:-1,1:-1] = q(xv, yv)
-    q = Q
-    q[1:-1, 0]  = q[1:-1, 2]
-    q[1:-1, -1] = q[1:-1, -3]
-    q[0, 1:-1]  = q[2, 1:-1]
-    q[-1, 1:-1] = q[-3, 1:-1]
-
-    #V = V(xv, yv)
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+import numpy as np
 
 
-    #Set constants used in loops
-    Cx = dt / dx
-    Cy = dt / dy
-    K  = dt*b / 2
-    dt2 = dt**2
 
-    u = zeros((Nx+3, Ny+3))     # solution array
-    u_1 = zeros((Nx+3, Ny+3))   # solution at t-dt
-    u_2 = zeros((Nx+3, Ny+3))   # solution at t-2*dt
+x0 = 0
+y0 = 0
+xS = 8
+yS = 8
+T = 10
 
-    #Calculate initial conditions into u_1
-    u_1[1:-1,1:-1] = I(xv[:], yv[:])
+Nx = 100
+Ny = 100
 
-    #Update ghost points for initial conditions
-    u_1[-1,1:-1] = u_1[-3,1:-1]
-    u_1[1:-1,0] = u_1[1:-1,2]
-    u_1[1:-1,-1] = u_1[1:-1,-3]
-    u_1[0,1:-1] = u_1[2,1:-1]
+dx = float(xS - x0) / Nx
+dy = float(yS - y0) / Ny
 
-    if user_action is not None:
-        user_action(u_1, x, xv, y, yv, t, 0)
+if dx <= dy:
+    dt = dx
+else:
+    dt = dy
+dt = 0.5*dx
+cx = dt/dx
+cy = dt/dy
 
-    #Calculate first time step
-#    for i in Ix:
-#        for j in Iy:
-#            u[i,j] = Cx**2/2*(                                                           \
-#                            (0.5*(q[i+1,j] + q[i,j]) * (u_1[i+1,j] - u_1[i,j]) -        \
-#                             0.5*(q[i,j] + q[i-1,j]) * (u_1[i,j] - u_1[i-1,j])))        \
-#                   + Cy**2/2*(                                                           \
-#                            (0.5*(q[i,j+1] + q[i,j]) * (u_1[i,j+1] - u_1[i,j]) -        \
-#                            (0.5*(q[i,j] + q[i,j-1]) * (u_1[i,j] - u_1[i,j-1]))))       \
-#                   + 0.5*dt2*f(x[i], y[j], t[1]) + u_1[i,j] + V(x[i], y[j])*dt*(1+K)
+Nt = float(T)/dt
 
-    u[1:-1, 1:-1] = \
-               Cx**2/2*(                                                   \
-                (0.5*(q[2:,1:-1] + q[1:-1,1:-1]) * (u_1[2:,1:-1] - u_1[1:-1,1:-1]) - \
-                 0.5*(q[1:-1,1:-1] + q[:-2,1:-1]) * (u_1[1:-1,1:-1] - u_1[:-2,1:-1])))        \
-             + Cy**2/2*(                                                           \
-                (0.5*(q[1:-1,2:] + q[1:-1,1:-1]) * (u_1[1:-1,2:] - u_1[1:-1,1:-1]) - \
-                 0.5*(q[1:-1,1:-1] + q[1:-1,:-2]) * (u_1[1:-1,1:-1] - u_1[1:-1,:-2])))       \
-             + 0.5*dt2*f(xv[:], yv[:], t[1]) + u_1[1:-1,1:-1] + V(xv[:], yv[:])*dt*(1+K)
+xu = np.linspace(x0, xS, Nx+1)
+yu = np.linspace(y0, yS, Nx+1)
 
-    #Update ghost points
-    u[1:-1, 0]  = u[1:-1, 2]
-    u[1:-1, -1] = u[1:-1, -3]
-    u[0, 1:-1]  = u[2, 1:-1]
-    u[-1, 1:-1] = u[-3, 1:-1]
+xeta = np.linspace(x0+0.5*dx, xS-0.5*dx, Nx)
+yeta = np.linspace(y0+0.5*dy, yS-0.5*dy, Ny)
 
-    if user_action is not None:
-        user_action(u, x, xv, y, yv, t, 1)
+t = np.linspace(0, T, Nt+1)
 
-    # Update data structures for next step
-    u_2, u_1, u = u_1, u, u_2
-    #Recursive calculations
-    for n in It:
-#        for i in Ix:
-#            for j in Iy:
-#                u[i,j] = (Cx**2*(                                                        \
-#                        (0.5*(q[i+1,j] + q[i,j]) * (u_1[i+1,j] - u_1[i,j]) -            \
-#                         0.5*(q[i,j] + q[i-1,j]) * (u_1[i,j] - u_1[i-1,j])))              \
-#                     + Cy**2*(                                                           \
-#                        (0.5*(q[i,j+1] + q[i,j]) * (u_1[i,j+1] - u_1[i,j]) -            \
-#                        (0.5*(q[i,j] + q[i,j-1]) * (u_1[i,j] - u_1[i,j-1]))))           \
-#                     + dt2*f(x[i], y[j], t[n]) + 2*u_1[i,j] - u_2[i,j]*(1-K))/(1+K)
-        u[1:-1,1:-1] = \
-                 (Cx**2*( \
-                    (0.5*(q[2:,1:-1] + q[1:-1,1:-1]) * (u_1[2:,1:-1] - u_1[1:-1,1:-1]) -    \
-                     0.5*(q[1:-1,1:-1] + q[:-2,1:-1]) * (u_1[1:-1,1:-1] - u_1[:-2,1:-1])))  \
-                + Cy**2*(                                                                   \
-                    (0.5*(q[1:-1,2:] + q[1:-1,1:-1]) * (u_1[1:-1,2:] - u_1[1:-1,1:-1]) -    \
-                     0.5*(q[1:-1,1:-1] + q[1:-1,:-2]) * (u_1[1:-1,1:-1] - u_1[1:-1,:-2])))  \
-                + dt2*f(xv[:], yv[:], t[n]) + 2*u_1[1:-1,1:-1] - u_2[1:-1,1:-1]*(1-K))/(1+K)
+eta0 = np.zeros([len(xeta), len(yeta)])
+eta1 = np.zeros([len(xeta), len(yeta)])
+u0 = np.zeros([len(xu), len(yu)])
+u1 = np.zeros([len(xu), len(yu)])
+v0 = np.zeros([len(xu), len(yu)])
+v1 = np.zeros([len(xu), len(yu)])
+
+hx = np.ones(len(u0))
+hy = np.ones(len(u0))
+
+#hx[0:10], hx[-11:], hy[0:10], hy[-11:] = 0, 0, 0, 0
+#hx[1], hx[-2], hy[1], hy[-2] = 0, 0, 0, 0
+#hx[2], hx[-3], hy[2], hy[-3] = 0, 0, 0, 0
+
+I = lambda x, y: 0.5*np.exp(-((x-0.3*xS)**2 + (y-0.3*yS)**2) )
+I2 = lambda x, y: 0.5*np.exp(-(x)**2)
+
+for i in range(len(xeta)):
+    eta0[i,:] = I(xeta[i], yeta[:])
+
+print hy
+#fig = plt.figure()
+#ax = fig.gca(projection='3d')
+
+for n in range(len(t)):
+    u1[1:-1, 1:-1] = u0[1:-1, 1:-1] - cx*( eta0[1:, 1:] - eta0[:-1, 1:] )
+    v1[1:-1, 1:-1] = v0[1:-1, 1:-1] - cy*( eta0[1:, 1:] - eta0[1:, :-1] )
+
+    v1[0, :] = v1[1, :]
+    v1[-1, :] = v1[-2, :]
+    v1[:, 0] = 0#v1[:, 1]
+    v1[:, -1] = 0#v1[:, -2]
+    u1[0, :] = 0#u1[1, :]
+    u1[-1, :] = 0#u1[-2, :]
+    u1[:, 0] = u1[:, 1]
+    u1[:, -1] = u1[:, -2]
+
+    eta1[:, :] = eta0[:, :] - cx*( hx[1:]*u1[1:, :-1] - hx[:-1]*u1[:-1, :-1] ) - cy*( hy[1:]*v1[:-1, 1:] - hy[:-1]*v1[:-1, :-1])
 
 
-        #Update ghost points
-        u[1:-1, 0]  = u[1:-1, 2]
-        u[1:-1, -1] = u[1:-1, -3]
-        u[0, 1:-1]  = u[2, 1:-1]
-        u[-1, 1:-1] = u[-3, 1:-1]
 
-        if user_action is not None:
-            user_action(u, x, xv, y, yv, t, n+1)
+    u0 = u1
+    v0 = v1
+    eta0 = eta1
 
-        # Update data structures for next step
-        u_2, u_1, u = u_1, u, u_2
+    X, Y = np.meshgrid(xeta, yeta)
+    plt.contourf(X, Y, eta0)
+    plt.colorbar()
+    #surf = ax.plot_surface(X, Y, eta0, cmap=cm.coolwarm, linewidth=0, antialiased=False)
+    plt.draw()
+    plt.pause(.01)
+    plt.clf()
 
-
-Nx, Ny = 10, 10
-
-
-u = np.zeros([Nx+3, Ny+3])
-u1 = np.zeros([Nx+3, Ny+3])
-u2 = np.zeros([Nx+3, Ny+3])
-
-h = np.ones([Nx+5, Ny+5])
